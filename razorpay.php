@@ -16,14 +16,6 @@
 class Razorpay extends NonmerchantGateway
 {
     /**
-     * @var string The version of this gateway
-     */
-    private static $version = '1.0.0';
-    /**
-     * @var string The authors of this gateway
-     */
-    private static $authors = [['name'=>'Phillips Data, Inc.','url'=>'http://www.blesta.com']];
-    /**
      * @var array An array of meta data for this gateway
      */
     private $meta;
@@ -37,61 +29,13 @@ class Razorpay extends NonmerchantGateway
      */
     public function __construct()
     {
+        $this->loadConfig(dirname(__FILE__) . DS . 'config.json');
+
         // Load components required by this gateway
         Loader::loadComponents($this, ['Input']);
 
         // Load the language required by this gateway
         Language::loadLang('razorpay', null, dirname(__FILE__) . DS . 'language' . DS);
-    }
-
-    /**
-     * Returns the name of this gateway
-     *
-     * @return string The common name of this gateway
-     */
-    public function getName()
-    {
-        return Language::_('Razorpay.name', true);
-    }
-
-    /**
-     * Returns the version of this gateway
-     *
-     * @return string The current version of this gateway
-     */
-    public function getVersion()
-    {
-        return self::$version;
-    }
-
-    /**
-     * Returns the name and URL for the authors of this gateway
-     *
-     * @return array The name and URL of the authors of this gateway
-     */
-    public function getAuthors()
-    {
-        return self::$authors;
-    }
-
-    /**
-     * Return all currencies supported by this gateway
-     *
-     * @return array A numerically indexed array containing all currency codes (ISO 4217 format) this gateway supports
-     */
-    public function getCurrencies()
-    {
-        return ['AED', 'ALL', 'AMD', 'ARS', 'AUD', 'AWG', 'BBD', 'BDT', 'BMD',
-                'BND', 'BOB', 'BSD', 'BWP', 'BZD', 'CAD', 'CHF', 'CNY', 'COP',
-                'CRC', 'CUP', 'CZK', 'DKK', 'DOP', 'DZD', 'EGP', 'ETB', 'EUR',
-                'FJD', 'GBP', 'GIP', 'GHS', 'GMD', 'GTQ', 'GYD', 'HKD', 'HNL',
-                'HRK', 'HTG', 'HUF', 'IDR', 'ILS', 'INR', 'JMD', 'KES', 'KGS',
-                'KHR', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD', 'LSL', 'MAD',
-                'MDL', 'MKD', 'MMK', 'MNT', 'MOP', 'MUR', 'MVR', 'MWK', 'MXN',
-                'MYR', 'NAD', 'NGN', 'NIO', 'NOK', 'NPR', 'NZD', 'PEN', 'PGK',
-                'PHP', 'PKR', 'QAR', 'RUB', 'SAR', 'SCR', 'SEK', 'SGD', 'SLL',
-                'SOS', 'SSP', 'SVC', 'SZL', 'THB', 'TTD', 'TZS', 'USD', 'UYU',
-                'UZS', 'YER', 'ZAR'];
     }
 
     /**
@@ -180,6 +124,7 @@ class Razorpay extends NonmerchantGateway
      * Returns all HTML markup required to render an authorization and capture payment form
      *
      * @param array $contact_info An array of contact info including:
+     *
      *  - id The contact ID
      *  - client_id The ID of the client this contact belongs to
      *  - user_id The user ID this contact belongs to (if any)
@@ -203,9 +148,11 @@ class Razorpay extends NonmerchantGateway
      *  - zip The zip/postal code of the contact
      * @param float $amount The amount to charge this contact
      * @param array $invoice_amounts An array of invoices, each containing:
+     *
      *  - id The ID of the invoice being processed
      *  - amount The amount being processed for this invoice (which is included in $amount)
      * @param array $options An array of options including:
+     *
      *  - description The Description of the charge
      *  - return_url The URL to redirect users to after a successful payment
      *  - recur An array of recurring info including:
@@ -346,6 +293,7 @@ class Razorpay extends NonmerchantGateway
      * @param array $get The GET data for this request
      * @param array $post The POST data for this request
      * @return array An array of transaction data, sets any errors using Input if the data fails to validate
+     *
      *  - client_id The ID of the client that attempted the payment
      *  - amount The amount of the payment
      *  - currency The currency of the payment
@@ -437,6 +385,7 @@ class Razorpay extends NonmerchantGateway
      * @param array $get The GET data for this request
      * @param array $post The POST data for this request
      * @return array An array of transaction data, may set errors using Input if the data appears invalid
+     *
      *  - client_id The ID of the client that attempted the payment
      *  - amount The amount of the payment
      *  - currency The currency of the payment
@@ -537,6 +486,7 @@ class Razorpay extends NonmerchantGateway
      * @param float $amount The amount to refund this transaction
      * @param string $notes Notes about the refund that may be sent to the client by the gateway
      * @return array An array of transaction data including:
+     *
      *  - status The status of the transaction (approved, declined, void, pending, reconciled, refunded, returned)
      *  - reference_id The reference ID for gateway-only use with this transaction (optional)
      *  - transaction_id The ID returned by the remote gateway to identify this transaction
@@ -551,7 +501,12 @@ class Razorpay extends NonmerchantGateway
 
         // Fetch order payments
         try {
-            $this->log($this->ifSet($_SERVER['REQUEST_URI']), serialize(compact('reference_id', 'transaction_id', 'amount')), 'input', true);
+            $this->log(
+                $this->ifSet($_SERVER['REQUEST_URI']),
+                serialize(compact('reference_id', 'transaction_id', 'amount')),
+                'input',
+                true
+             );
 
             $order_payments = $api->order->fetch($transaction_id)->payments();
 
@@ -593,6 +548,7 @@ class Razorpay extends NonmerchantGateway
      * Serializes an array of invoice info into a string
      *
      * @param array A numerically indexed array invoices info including:
+     *
      *  - id The ID of the invoice
      *  - amount The amount relating to the invoice
      * @return string A serialized string of invoice info in the format of key1=value1|key2=value2
@@ -611,6 +567,7 @@ class Razorpay extends NonmerchantGateway
      *
      * @param string A serialized string of invoice info in the format of key1=value1|key2=value2
      * @return array A numerically indexed array invoices info including:
+     *
      *  - id The ID of the invoice
      *  - amount The amount relating to the invoice
      */
