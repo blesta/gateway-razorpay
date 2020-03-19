@@ -1,5 +1,6 @@
 <?php
 $lang['Razorpay.name'] = 'Razorpay';
+$lang['Razorpay.description'] = 'Razorpay is a payments company that provides payment solutions to online merchants in India';
 
 $lang['Razorpay.key_id'] = 'Key ID';
 $lang['Razorpay.key_secret'] = 'Key Secret';
@@ -13,4 +14,3 @@ $lang['Razorpay.buildprocess.submit'] = 'Pay with Razorpay';
 // Errors
 $lang['Razorpay.!error.key_id.valid'] = 'You must enter a valid Key ID.';
 $lang['Razorpay.!error.key_secret.valid'] = 'You must enter a valid Key Secret.';
-$lang['Razorpay.!error.test_mode.valid'] = 'Test mode must be set to "true" if given.';
