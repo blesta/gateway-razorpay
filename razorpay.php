@@ -192,21 +192,21 @@ class Razorpay extends NonmerchantGateway
         ];
 
         try {
-            $this->log($this->ifSet($_SERVER['REQUEST_URI']), serialize($fields), 'input', true);
+            $this->log((isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null), serialize($fields), 'input', true);
 
             $order = $api->order->create($fields);
 
             // Set the order custom fields
             $api->request->request('PATCH', 'orders/' . $order->id, [
                 'notes' => [
-                    'invoice_amounts' => $this->ifSet($invoices),
-                    'client_id' => $this->ifSet($contact_info['client_id'])
+                    'invoice_amounts' => (isset($invoices) ? $invoices : null),
+                    'client_id' => (isset($contact_info['client_id']) ? $contact_info['client_id'] : null)
                 ]
             ]);
 
             // Log the API response
             $this->log(
-                $this->ifSet($_SERVER['REQUEST_URI']),
+                (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null),
                 serialize($order),
                 'output',
                 isset($order->id)
@@ -229,27 +229,27 @@ class Razorpay extends NonmerchantGateway
         $fields = [
             'key_id' => $this->meta['key_id'],
             'name' => $company->name,
-            'description' => $this->ifSet($options['description']),
+            'description' => (isset($options['description']) ? $options['description'] : null),
             'order_id' => $order->id,
             'amount' => $amount * 100,
             'currency' => $this->currency,
             'prefill' => [
                 'name' => $this->Html->concat(
                     ' ',
-                    $this->ifSet($contact_info['first_name']),
-                    $this->ifSet($contact_info['last_name'])
+                    (isset($contact_info['first_name']) ? $contact_info['first_name'] : null),
+                    (isset($contact_info['last_name']) ? $contact_info['last_name'] : null)
                 ),
                 'email' => $client->email
             ],
             'notes' => [
-                'invoice_amounts' => $this->ifSet($invoices),
-                'client_id' => $this->ifSet($contact_info['client_id'])
+                'invoice_amounts' => (isset($invoices) ? $invoices : null),
+                'client_id' => (isset($contact_info['client_id']) ? $contact_info['client_id'] : null)
             ],
-            'callback_url' => $this->ifSet($options['return_url'])
+            'callback_url' => (isset($options['return_url']) ? $options['return_url'] : null)
         ];
 
         // Set contact phone number
-        if ($this->ifSet($contact_info['id'], false)) {
+        if ((isset($contact_info['id']) ? $contact_info['id'] : false)) {
             Loader::loadModels($this, ['Contacts']);
 
             if (($contact = $this->Contacts->get($contact_info['id']))) {
@@ -316,7 +316,7 @@ class Razorpay extends NonmerchantGateway
 
             // Log the API response
             $this->log(
-                $this->ifSet($_SERVER['REQUEST_URI']),
+                (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null),
                 serialize($vars),
                 'output',
                 json_last_error() === JSON_ERROR_NONE
@@ -326,13 +326,13 @@ class Razorpay extends NonmerchantGateway
         }
 
         // Fetch client id
-        $client_id = $this->ifSet($vars->payload->order->entity->notes->client_id);
+        $client_id = (isset($vars->payload->order->entity->notes->client_id) ? $vars->payload->order->entity->notes->client_id : null);
 
         // Verify webhook signature
         $headers = getallheaders();
         $status = 'error';
 
-        $signature = $this->ifSet($headers['X-Razorpay-Signature']);
+        $signature = (isset($headers['X-Razorpay-Signature']) ? $headers['X-Razorpay-Signature'] : null);
         $expected_signature = hash_hmac(
             'sha256',
             trim($webhook),
@@ -369,12 +369,12 @@ class Razorpay extends NonmerchantGateway
 
         return [
             'client_id' => $client_id,
-            'amount' => $this->ifSet($amount),
-            'currency' => $this->ifSet($currency),
+            'amount' => (isset($amount) ? $amount : null),
+            'currency' => (isset($currency) ? $currency : null),
             'status' => $status,
-            'reference_id' => $this->ifSet($vars->payload->payment->entity->email),
-            'transaction_id' => $this->ifSet($vars->payload->payment->entity->order_id),
-            'invoices' => $this->unserializeInvoices($this->ifSet($invoices))
+            'reference_id' => (isset($vars->payload->payment->entity->email) ? $vars->payload->payment->entity->email : null),
+            'transaction_id' => (isset($vars->payload->payment->entity->order_id) ? $vars->payload->payment->entity->order_id : null),
+            'invoices' => $this->unserializeInvoices((isset($invoices) ? $invoices : null))
         ];
     }
 
@@ -402,18 +402,18 @@ class Razorpay extends NonmerchantGateway
         Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
-        $client_id = $this->ifSet($get['client_id']);
+        $client_id = (isset($get['client_id']) ? $get['client_id'] : null);
 
         // Fetch order
         if (isset($post['razorpay_order_id'])) {
             try {
-                $this->log($this->ifSet($_SERVER['REQUEST_URI']), serialize($post), 'input', true);
+                $this->log((isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null), serialize($post), 'input', true);
 
                 $order = $api->order->fetch($post['razorpay_order_id']);
 
                 // Log the API response
                 $this->log(
-                    $this->ifSet($_SERVER['REQUEST_URI']),
+                    (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null),
                     serialize($order),
                     'output',
                     isset($order->id)
@@ -439,12 +439,12 @@ class Razorpay extends NonmerchantGateway
         // Check if an error has been returned
         if (isset($post['error'])) {
             $this->Input->setErrors(
-                ['error' => ['message' => $this->ifSet($post['error']['description'])]]
+                ['error' => ['message' => (isset($post['error']['description']) ? $post['error']['description'] : null)]]
             );
 
             // Log the API response
             $this->log(
-                $this->ifSet($_SERVER['REQUEST_URI']),
+                (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null),
                 serialize($post),
                 'output',
                 false
@@ -457,9 +457,9 @@ class Razorpay extends NonmerchantGateway
         if (isset($post['razorpay_order_id'])) {
             $signature = $api->utility->verifyPaymentSignature(
                 [
-                    'razorpay_signature' => $this->ifSet($post['razorpay_signature']),
-                    'razorpay_payment_id' => $this->ifSet($post['razorpay_payment_id']),
-                    'razorpay_order_id' => $this->ifSet($post['razorpay_order_id'])
+                    'razorpay_signature' => (isset($post['razorpay_signature']) ? $post['razorpay_signature'] : null),
+                    'razorpay_payment_id' => (isset($post['razorpay_payment_id']) ? $post['razorpay_payment_id'] : null),
+                    'razorpay_order_id' => (isset($post['razorpay_order_id']) ? $post['razorpay_order_id'] : null)
                 ]
             );
 
@@ -470,11 +470,11 @@ class Razorpay extends NonmerchantGateway
 
         return [
             'client_id' => $client_id,
-            'amount' => $this->ifSet($amount),
-            'currency' => $this->ifSet($currency),
-            'invoices' => $this->unserializeInvoices($this->ifSet($invoices)),
+            'amount' => (isset($amount) ? $amount : null),
+            'currency' => (isset($currency) ? $currency : null),
+            'invoices' => $this->unserializeInvoices((isset($invoices) ? $invoices : null)),
             'status' => $status,
-            'transaction_id' => $this->ifSet($post['razorpay_order_id'])
+            'transaction_id' => (isset($post['razorpay_order_id']) ? $post['razorpay_order_id'] : null)
         ];
     }
 
@@ -502,7 +502,7 @@ class Razorpay extends NonmerchantGateway
         // Fetch order payments
         try {
             $this->log(
-                $this->ifSet($_SERVER['REQUEST_URI']),
+                (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null),
                 serialize(compact('reference_id', 'transaction_id', 'amount')),
                 'input',
                 true
@@ -512,7 +512,7 @@ class Razorpay extends NonmerchantGateway
 
             // Log the API response
             $this->log(
-                $this->ifSet($_SERVER['REQUEST_URI']),
+                (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null),
                 serialize($order_payments),
                 'output',
                 !empty($order_payments)
