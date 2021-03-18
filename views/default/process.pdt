@@ -4,7 +4,7 @@
 $this->Form->setCsrfOptions(['set_on_create' => false]);
 $this->Form->create($post_to);
 
-if ($this->Html->ifSet($fields)) {
+if ((isset($fields) ? $fields : null)) {
     foreach ($fields as $key => $value) {
         if (is_array($value)) {
             foreach ($value as $sub_key => $sub_value) {
