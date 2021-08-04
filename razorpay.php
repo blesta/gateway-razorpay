@@ -468,6 +468,10 @@ class Razorpay extends NonmerchantGateway
             }
         }
 
+        if (($errors = $this->Input->errors()) && empty($errors) && $status !== 'approved') {
+            $this->Input->setErrors($this->getCommonError('invalid'));
+        }
+
         return [
             'client_id' => $client_id,
             'amount' => (isset($amount) ? $amount : null),
