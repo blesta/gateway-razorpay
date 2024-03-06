@@ -187,21 +187,17 @@ class Razorpay extends NonmerchantGateway
         $fields = [
             'payment_capture' => 1,
             'amount' => $amount * 100,
-            'currency' => $this->currency
+            'currency' => $this->currency,
+            'notes' => [
+                'invoice_amounts' => (isset($invoices) ? $invoices : null),
+                'client_id' => (isset($contact_info['client_id']) ? $contact_info['client_id'] : null)
+            ]
         ];
 
         try {
             $this->log((isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null), serialize($fields), 'input', true);
 
             $order = $api->order->create($fields);
-
-            // Set the order custom fields
-            $api->request->request('PATCH', 'orders/' . $order->id, [
-                'notes' => [
-                    'invoice_amounts' => (isset($invoices) ? $invoices : null),
-                    'client_id' => (isset($contact_info['client_id']) ? $contact_info['client_id'] : null)
-                ]
-            ]);
 
             // Log the API response
             $this->log(
@@ -575,9 +571,9 @@ class Razorpay extends NonmerchantGateway
     private function unserializeInvoices($str)
     {
         $invoices = [];
-        $temp = explode('|', $str);
+        $temp = explode('|', $str ?? '');
         foreach ($temp as $pair) {
-            $pairs = explode('=', $pair, 2);
+            $pairs = explode('=', $pair ?? '', 2);
             if (count($pairs) != 2) {
                 continue;
             }
