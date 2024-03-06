@@ -173,7 +173,6 @@ class Razorpay extends NonmerchantGateway
         Loader::loadHelpers($this, ['Html']);
 
         // Load library methods
-        Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
         // Force 2-decimal places only
@@ -211,7 +210,7 @@ class Razorpay extends NonmerchantGateway
                 'output',
                 isset($order->id)
             );
-        } catch (Razorpay\Api\Errors\Error $e) {
+        } catch (Throwable $e) {
             $this->Input->setErrors(
                 ['error' => ['message' => $e->getMessage()]]
             );
@@ -399,7 +398,6 @@ class Razorpay extends NonmerchantGateway
     public function success(array $get, array $post)
     {
         // Load library methods
-        Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
         $client_id = (isset($get['client_id']) ? $get['client_id'] : null);
@@ -418,7 +416,7 @@ class Razorpay extends NonmerchantGateway
                     'output',
                     isset($order->id)
                 );
-            } catch (Razorpay\Api\Errors\Error $e) {
+            } catch (Throwable $e) {
                 $this->Input->setErrors(
                     ['error' => ['message' => $e->getMessage()]]
                 );
@@ -500,7 +498,6 @@ class Razorpay extends NonmerchantGateway
     public function refund($reference_id, $transaction_id, $amount, $notes = null)
     {
         // Load library methods
-        Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
         // Fetch order payments
@@ -521,7 +518,7 @@ class Razorpay extends NonmerchantGateway
                 'output',
                 !empty($order_payments)
             );
-        } catch (Razorpay\Api\Errors\Error $e) {
+        } catch (Throwable $e) {
             $this->Input->setErrors(
                 ['error' => ['message' => $e->getMessage()]]
             );
@@ -533,7 +530,7 @@ class Razorpay extends NonmerchantGateway
         foreach ($order_payments->items as $payment) {
             try {
                 $payment->refund();
-            } catch (Razorpay\Api\Errors\Error $e) {
+            } catch (Throwable $e) {
                 $this->Input->setErrors(
                     ['error' => ['message' => $e->getMessage()]]
                 );
