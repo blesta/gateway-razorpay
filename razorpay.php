@@ -173,7 +173,6 @@ class Razorpay extends NonmerchantGateway
         Loader::loadHelpers($this, ['Html']);
 
         // Load library methods
-        Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
         // Force 2-decimal places only
@@ -188,21 +187,17 @@ class Razorpay extends NonmerchantGateway
         $fields = [
             'payment_capture' => 1,
             'amount' => $amount * 100,
-            'currency' => $this->currency
+            'currency' => $this->currency,
+            'notes' => [
+                'invoice_amounts' => (isset($invoices) ? $invoices : null),
+                'client_id' => (isset($contact_info['client_id']) ? $contact_info['client_id'] : null)
+            ]
         ];
 
         try {
             $this->log((isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null), serialize($fields), 'input', true);
 
             $order = $api->order->create($fields);
-
-            // Set the order custom fields
-            $api->request->request('PATCH', 'orders/' . $order->id, [
-                'notes' => [
-                    'invoice_amounts' => (isset($invoices) ? $invoices : null),
-                    'client_id' => (isset($contact_info['client_id']) ? $contact_info['client_id'] : null)
-                ]
-            ]);
 
             // Log the API response
             $this->log(
@@ -211,7 +206,7 @@ class Razorpay extends NonmerchantGateway
                 'output',
                 isset($order->id)
             );
-        } catch (Razorpay\Api\Errors\Error $e) {
+        } catch (Throwable $e) {
             $this->Input->setErrors(
                 ['error' => ['message' => $e->getMessage()]]
             );
@@ -399,7 +394,6 @@ class Razorpay extends NonmerchantGateway
     public function success(array $get, array $post)
     {
         // Load library methods
-        Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
         $client_id = (isset($get['client_id']) ? $get['client_id'] : null);
@@ -418,7 +412,7 @@ class Razorpay extends NonmerchantGateway
                     'output',
                     isset($order->id)
                 );
-            } catch (Razorpay\Api\Errors\Error $e) {
+            } catch (Throwable $e) {
                 $this->Input->setErrors(
                     ['error' => ['message' => $e->getMessage()]]
                 );
@@ -500,7 +494,6 @@ class Razorpay extends NonmerchantGateway
     public function refund($reference_id, $transaction_id, $amount, $notes = null)
     {
         // Load library methods
-        Loader::load(dirname(__FILE__) . DS . 'lib' . DS . 'Razorpay.php');
         $api = new Razorpay\Api\Api($this->meta['key_id'], $this->meta['key_secret']);
 
         // Fetch order payments
@@ -521,7 +514,7 @@ class Razorpay extends NonmerchantGateway
                 'output',
                 !empty($order_payments)
             );
-        } catch (Razorpay\Api\Errors\Error $e) {
+        } catch (Throwable $e) {
             $this->Input->setErrors(
                 ['error' => ['message' => $e->getMessage()]]
             );
@@ -533,7 +526,7 @@ class Razorpay extends NonmerchantGateway
         foreach ($order_payments->items as $payment) {
             try {
                 $payment->refund();
-            } catch (Razorpay\Api\Errors\Error $e) {
+            } catch (Throwable $e) {
                 $this->Input->setErrors(
                     ['error' => ['message' => $e->getMessage()]]
                 );
@@ -578,9 +571,9 @@ class Razorpay extends NonmerchantGateway
     private function unserializeInvoices($str)
     {
         $invoices = [];
-        $temp = explode('|', $str);
+        $temp = explode('|', $str ?? '');
         foreach ($temp as $pair) {
-            $pairs = explode('=', $pair, 2);
+            $pairs = explode('=', $pair ?? '', 2);
             if (count($pairs) != 2) {
                 continue;
             }
