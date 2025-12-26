@@ -421,7 +421,7 @@ class Razorpay extends NonmerchantGateway
             }
 
             // Force 2-decimal places only
-            $amount = number_format(($order->amount / 100), 2, '.', '');
+            $amount = number_format(($order->amount_paid / 100), 2, '.', '');
 
             // Fetch order currency
             $currency = $order->currency;
